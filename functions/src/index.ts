@@ -1,5 +1,7 @@
 import * as functions from 'firebase-functions';
 import admin from 'firebase-admin';
+import puppeteer from 'puppeteer';
+
 import { collectionName } from './services/constants';
 
 admin.initializeApp();
