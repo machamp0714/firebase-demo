@@ -4,7 +4,8 @@ export type FeedMemo = {
   id?: string;
   title: string | null;
   author: string | null;
-  publisher: string | null; releaseDate: string | null;
+  publisher: string | null;
+  releaseDate: string | null;
   isbn: string | null;
   fetchedAt: firebase.firestore.Timestamp | null; createdAt: firebase.firestore.Timestamp | null;
 }
