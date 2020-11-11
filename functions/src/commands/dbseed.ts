@@ -4,7 +4,7 @@ import parse from 'csv-parse/lib/sync';
 
 import { Publisher } from '../services/models/publisher';
 import { collectionName } from '../services/constants';
-// import { addCounter } from '../firestore-admin/record-counter';
+import { addCounter } from '../firestore-admin/record-counter';
 
 import serviceAccount from '../firebase-demo-adminsdk.json';
 
@@ -33,12 +33,13 @@ const uploadSeed = async (collection: string, seedFile: string) => {
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         })) || [];
       
-      for await (const doc of docs) {
+      for await (const doc of docs) { // ループ処理の中でawaitを使うために、for awaitと書く。
         const { id, ...docWithoutId } = doc;
         await ref.doc(id).set(docWithoutId);
-
-        return;
       }
+      await addCounter(db, collection, docs.length);
+
+      return;
     }
 
     default: {
