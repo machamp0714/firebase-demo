@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import admin from 'firebase-admin';
 import puppeteer from 'puppeteer';
+import { subDays } from 'date-fns';
 
 import { collectionName } from './services/constants';
 import { feedCalendar } from './crawlers/kodansha-calendar';
@@ -49,4 +50,26 @@ export const fetchCalendar = functions
     const fetchCount = await saveFeedMemo(db, memos, 'kodansha');
     await browser.close();
     console.log(`Fetched Kodansha calendar. Wrote ${fetchCount} memos.`);
+  });
+
+export const registerBooks = functions
+  .region('asia-northeast1')
+  .runWith({
+    timeoutSeconds: 300,
+    memory: '1GB'
+  })
+  .pubsub.schedule('5,10,15 2 1,10,20 * *')
+  .timeZone('Asia/Tokyo')
+  .onRun(async () => {
+    const db = admin.firestore();
+    const yesterday = subDays(new Date(), 1);
+    const snap = await db
+      .collection(collectionName.feedMemos)
+      .where('isbn', '==', null)
+      .where('fetchedAt', '<', yesterday)
+      .limit(20)
+      .get();
+
+    // let count = 0;
+    console.log(snap);
   });
