@@ -6,6 +6,14 @@ import { subDays } from 'date-fns';
 import { collectionName } from './services/constants';
 import { feedCalendar } from './crawlers/kodansha-calendar';
 import { saveFeedMemo } from './firestore-admin/feed-memo';
+import { createBook } from './firestore-admin/books';
+import { findOrCreateAuthors } from './firestore-admin/author';
+import { findPublisher } from './firestore-admin/publisher';
+import { findBookItem } from './services/rakuten/api';
+import { sleep } from './utils/timer';
+import { FeedMemo } from './services/models/feed-memo';
+
+const RAKUTEN_APP_ID = '1079561168398109791';
 
 admin.initializeApp();
 
@@ -70,6 +78,34 @@ export const registerBooks = functions
       .limit(20)
       .get();
 
-    // let count = 0;
-    console.log(snap);
+    let count = 0;
+    
+    for await (const doc of snap.docs) {
+      const memo = doc.data() as FeedMemo;
+      const title = memo.title || '';
+      const publisherName = memo.publisher || '';
+
+      const bookItem = await findBookItem(
+        { title, publisherName },
+        RAKUTEN_APP_ID
+      );
+
+      if (bookItem) {
+        const authors = await findOrCreateAuthors(db, bookItem);
+        const publisher = await findPublisher(db, 'kodansha');
+        const book = await createBook(db, memo, bookItem, authors, publisher);
+        await doc.ref.update({
+          isbn: book.isbn,
+          fetchedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        count += 1;
+      } else {
+        await doc.ref.update({
+          fetchedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      await sleep(1000);
+    }
+
+    console.log(`Registered ${count} books.`);
   });

@@ -9,7 +9,7 @@ type SearchParams = {
   author?: string | null;
   publisherName?: string | null;
   isbn?: string | null;
-  bookGenreId: string;
+  bookGenreId?: string;
   outOfStockFlag?: number;
   sort?: string;
 }
