@@ -13,7 +13,7 @@ import { findBookItem } from './services/rakuten/api';
 import { sleep } from './utils/timer';
 import { FeedMemo } from './services/models/feed-memo';
 
-const RAKUTEN_APP_ID = '1079561168398109791';
+const RAKUTEN_APP_ID = functions.config().rakuten.app_id;
 
 admin.initializeApp();
 
